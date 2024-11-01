@@ -201,7 +201,7 @@ registration ecosystem.
   3.1. EPP Extension Overview
 
      The protocol leverages EPP extensions to convey the enhanced
-     authorization information, including the authorization token,
+     authorization information, including the authorization information,
      cryptographic digest, and associated signatures. These extensions
      augment existing EPP transfer request operations.
 
@@ -239,103 +239,149 @@ registration ecosystem.
   3.5 Format in EPP Extension Element
 
      The enhanced authorization information is encoded in XML format as an
-     EPP extension element.
+     EPP extension element as followed
 
   3.5.1 Required Fields
 
-     The enhanced authorization token consists of the following required fields:
+     The enhanced authorization information consists of the following required fields:
 
      * version - Schema version number
-     * tokenId - Unique identifier for this authorization token
      * domainName - The domain name being transferred
-     * issueTime - Token issuance timestamp
-     * expiryTime - Token expiration timestamp
-     * nonce - Random value to prevent replay attacks
-     * gainingRegistrantId - Identifier of intended receiving registrant
+     * nonce - Incremental number to prevent replay attacks
+     * receiverInfo - Container for receiver details:
+       * receiverType: Type of receiving entity (registrant/registrar)
+       * receiverKey: Public key of the receiver
+       * receiverIdentifier: Unique identifier of the receiver
      * approverInfo - Container for approver details:
        * approverType: Type of approving entity (registrant/registrar)
        * approverKey: Public key of the approver
        * approverIdentifier: Unique identifier of the approver
-     * signature - Cryptographic signature covering the above fields
+     * digestInfo - Container for digest details:
+       * digestAlgorithm: Hash algorithm used
+       * digestValue: Hexadecimal representation of the computed digest
 
   3.5.2 XML Schema Definition
 
-<?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema"
-        xmlns:authcodesec="urn:ietf:params:xml:ns:authcodesec-1.0"
-        targetNamespace="urn:ietf:params:xml:ns:authcodesec-1.0"
-        elementFormDefault="qualified">
+  BEGIN
+  <?xml version="1.0" encoding="UTF-8"?>
+  <schema targetNamespace="urn:ietf:params:xml:ns:epp:authcodesec-1.0"
+          xmlns:authcodesec="urn:ietf:params:xml:ns:epp:authcodesec-1.0"
+          xmlns:epp="urn:ietf:params:xml:ns:epp-1.0"
+          xmlns:eppcom="urn:ietf:params:xml:ns:eppcom-1.0"
+          xmlns="http://www.w3.org/2001/XMLSchema"
+          elementFormDefault="qualified">
 
-  <element name="authInfo" type="authcodesec:authInfoType"/>
-  
-  <complexType name="authInfoType">
-    <sequence>
-      <element name="version" type="string" fixed="1.0"/>
-      <element name="tokenId" type="string"/>
-      <element name="domainName" type="eppcom:labelType"/>
-      <element name="issueTime" type="dateTime"/>
-      <element name="expiryTime" type="dateTime"/>
-      <element name="nonce" type="base64Binary"/>
-      <element name="gainingRegistrantId" type="string"/>
-      <element name="approverInfo" type="authcodesec:approverInfoType"/>
-      <element name="signature" type="base64Binary"/>
-    </sequence>
-  </complexType>
+    <import namespace="urn:ietf:params:xml:ns:eppcom-1.0"/>
+    <import namespace="urn:ietf:params:xml:ns:epp-1.0"/>
 
-  <complexType name="approverInfoType">
-    <sequence>
-      <element name="approverType">
-        <simpleType>
-          <restriction base="string">
-            <enumeration value="registrant"/>
-            <enumeration value="registrar"/>
-          </restriction>
-        </simpleType>
-      </element>
-      <element name="approverKey" type="base64Binary"/>
-      <element name="approverIdentifier" type="string"/>
-    </sequence>
-  </complexType>
-</schema>
+    <annotation>
+      <documentation>
+        Extension to EPP extAuthInfoType for secure domain transfers
+      </documentation>
+    </annotation>
+
+    <element name="secData" type="authcodesec:secDataType" 
+    substitutionGroup="eppcom:extAuthInfo"/>
+
+    <complexType name="secDataType">
+      <complexContent>
+        <extension base="eppcom:extAuthInfoType">
+          <sequence>
+            <element name="version" type="token" fixed="1.0"/>
+            <element name="domainName" type="eppcom:labelType"/>
+            <element name="nonce" type="token"/>
+            <element name="receiverInfo" type="authcodesec:entityInfoType"/>
+            <element name="approverInfo" type="authcodesec:entityInfoType"/>
+            <element name="digestInfo" type="authcodesec:digestInfoType"/>
+          </sequence>
+        </extension>
+      </complexContent>
+    </complexType>
+
+    <complexType name="entityInfoType">
+      <sequence>
+        <element name="type" type="authcodesec:entityTypeEnum"/>
+        <element name="key" type="base64Binary"/>
+        <element name="identifier" type="token"/>
+      </sequence>
+    </complexType>
+
+    <simpleType name="entityTypeEnum">
+      <restriction base="token">
+        <enumeration value="registrant"/>
+        <enumeration value="registrar"/>
+        ... TODO add other types of authorities such as
+        <enumeration value="lawEnforcement"/>
+      </restriction>
+    </simpleType>
+
+    <complexType name="digestInfoType">
+      <sequence>
+        <element name="algorithm" type="authcodesec:digestAlgorithmEnum"/>
+        <element name="value" type="hexBinary"/>
+      </sequence>
+    </complexType>
+
+    <simpleType name="digestAlgorithmEnum">
+      <restriction base="token">
+        ... TODO: add supported algorithms / standard to define digesting
+      </restriction>
+    </simpleType>
+
+  </schema>
+  END
+
+3.5.3. Signature in domain:pw
+
+The signature value in domain:pw is the Base64-encoded value of the signature computed over the digest:
+
+C:        <domain:authInfo>
+C:          <domain:pw>Base64EncodedSignatureValueComputedOverTheDigest...</domain:pw>
+C:        </domain:authInfo>
+
+3.5.4 Example Usage
+
+Example of a domain transfer request with enhanced authorization information:
+
+C:<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+C:<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+C:  <command>
+C:    <transfer op="request">
+C:      <domain:transfer xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+C:        <domain:name>example.com</domain:name>
+C:        <domain:authInfo>
+C:          <domain:pw>Base64EncodedSignatureValueComputedOverTheDigest...</domain:pw>
+C:        </domain:authInfo>
+C:      </domain:transfer>
+C:    </transfer>
+C:    <extension>
+C:      <authcodesec:secData 
+C:       xmlns:authcodesec="urn:ietf:params:xml:ns:epp:authcodesec-1.0">
+C:        <authcodesec:version>1.0</authcodesec:version>
+C:        <authcodesec:domainName>example.com</authcodesec:domainName>
+C:        <authcodesec:nonce>f7027456abc8903d</authcodesec:nonce>
+C:        <authcodesec:receiverInfo>
+C:          <authcodesec:type>registrant</authcodesec:type>
+C:          <authcodesec:key>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...</authcodesec:key>
+C:          <authcodesec:identifier>RECV-12345</authcodesec:identifier>
+C:        </authcodesec:receiverInfo>
+C:        <authcodesec:approverInfo>
+C:          <authcodesec:type>registrant</authcodesec:type>
+C:          <authcodesec:key>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...</authcodesec:key>
+C:          <authcodesec:identifier>APPR-67890</authcodesec:identifier>
+C:        </authcodesec:approverInfo>
+C:        <authcodesec:digestInfo>
+C:          <authcodesec:algorithm>sha256</authcodesec:algorithm>
+C:          <authcodesec:value>2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824</authcodesec:value>
+C:        </authcodesec:digestInfo>
+C:      </authcodesec:secData>
+C:    </extension>
+C:    <clTRID>ABC-12345</clTRID>
+C:  </command>
+C:</epp>
 
 
-3.5.3 Example Usage
-
-A complete authorization token in an EPP transfer request would look like:
-
-<?xml version="1.0" encoding="UTF-8"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
-  <command>
-    <transfer op="request">
-      <domain:transfer xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>example.com</domain:name>
-        <domain:authInfo>
-          <domain:pw>SW4gdGhpcyBleGFtcGxlLCB0aGlzIGlzIG</domain:pw>
-        </domain:authInfo>
-      </domain:transfer>
-    </transfer>
-    <extension>
-      <authcodesec:authInfo xmlns:authcodesec="urn:ietf:params:xml:ns:authcodesec-1.0">
-        <authcodesec:version>1.0</authcodesec:version>
-        <authcodesec:tokenId>tok-12345</authcodesec:tokenId>
-        <authcodesec:domainName>example.com</authcodesec:domainName>
-        <authcodesec:issueTime>2024-10-31T10:00:00Z</authcodesec:issueTime>
-        <authcodesec:expiryTime>2024-11-30T10:00:00Z</authcodesec:expiryTime>
-        <authcodesec:nonce>dGhpcyBpcyBhIHRlc3Qgbm9uY2U=</authcodesec:nonce>
-        <authcodesec:gainingRegistrantId>REG-89012</authcodesec:gainingRegistrantId>
-        <authcodesec:approverInfo>
-          <authcodesec:approverType>registrant</authcodesec:approverType>
-          <authcodesec:approverKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...</authcodesec:approverKey>
-          <authcodesec:approverIdentifier>REG-67890</authcodesec:approverIdentifier>
-        </authcodesec:approverInfo>
-        <authcodesec:signature>SW4gdGhpcyBleGFtcGxlLCB0aGlzIGlzIG...</authcodesec:signature>
-      </authcodesec:authInfo>
-    </extension>
-    <clTRID>ABC-12345</clTRID>
-  </command>
-</epp>
-  
-4. Signature Verification
+4. Verification Flow
 
      The protocol specifies the process for verifying cryptographic
      signatures, including:
@@ -343,14 +389,11 @@ A complete authorization token in an EPP transfer request would look like:
         * Verification of anti-replay protection mechanisms
         * Verification of additional authorization parameters
 
-
-60. Backward Compatibility
-
    This specification defines three models of transfer verification to
    ensure smooth transition from traditional authInfo to the new
    cryptographic signature-based system.
 
-   60.1. Verification Models Overview
+   4.1. Verification Models Overview
 
         The verification process consists of two components: the losing
         side authorization and the gaining side verification. Each
@@ -367,7 +410,7 @@ A complete authorization token in an EPP transfer request would look like:
         | Model C        | Traditional authInfo model               |
         +----------------+------------------------------------------+
 
-   60.2. Losing Side Authorization Models
+   4.2. Losing Side Authorization Models
 
         60.2.1. Model A: Registrant Signature Model
 
@@ -390,7 +433,7 @@ A complete authorization token in an EPP transfer request would look like:
            * No changes to existing workflows
            * Retains current security limitations
 
-   60.3. Gaining Side Verification Models
+   4.3. Gaining Side Verification Models
 
         60.3.1. Model A: Registrant Key Verification
 
@@ -413,7 +456,7 @@ A complete authorization token in an EPP transfer request would look like:
            * No additional infrastructure required
            * Retains current security limitations
 
-   60.4. Migration Considerations
+   4.4. Migration Considerations
 
         Registries MUST support all models simultaneously during the
         transition period. The following combinations are valid:
@@ -560,6 +603,27 @@ A complete authorization token in an EPP transfer request would look like:
            - Double-selling incidents
            - Employee misconduct
 
+  80.2 chosing bertween pwAuthInfo or extAuthInfo for backward compatitiliy
+
+While Scott says in 
+
+> Having said that, I designed EPP in a way that allows for specification of
+> other approaches. Section 4.2 of RFC 5730 includes the schema that defines
+> authorization information. Note the “pwAuthInfoType” and the
+> "extAuthInfoType" type definitions. "extAuthInfoType" can be used as a
+> “hook” to define a new type. Given that the capability exists, I’d suggest
+> that you send a note to the IETF REGEXT working group mailing list asking
+> if anyone is interested in the possibility of defining an extension for a
+> new PKI-based authorization information type. You’d be better of measuring
+> people’s interest in the topic before you invest a lot of time working on a
+> proposal.
+> -- S. Hollenbeck, 2024-03-19 https://mailarchive.ietf.org/arch/msg/regext/pRSTKwvDRM4WM_s-nme2PRig4Z4/
+
+In practice it domain:ext has not been widely used. And since we want to 
+maintain backward compatibility with existing systems, we should choose
+pwAuthInfo over extAuthInfo.
+
+ 
 
   90. References
 
