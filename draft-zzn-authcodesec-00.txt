@@ -1,5 +1,6 @@
 Internet Engineering Task Force (IETF)              Zainan (Victor) Zhou
 Internet-Draft                                                    Namefi
+                                                           zzn@namefi.io
 Intended status: Standards Track                            October 2024
 Expires: April 30, 2025
 
