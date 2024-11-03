@@ -1,6 +1,6 @@
-Internet Engineering Task Force (IETF)                Zainan (Victor) Zhou
-Internet-Draft                                                      Namefi
-Intended status: Standards Track                              October 2024
+Internet Engineering Task Force (IETF)              Zainan (Victor) Zhou
+Internet-Draft                                                    Namefi
+Intended status: Standards Track                            October 2024
 Expires: April 30, 2025
 
 
@@ -9,13 +9,13 @@ Expires: April 30, 2025
 
 Abstract
 
-  This document specifies a mechanism to enhance domain transfer security by 
-  transitioning from a shared-secret authorization model to a cryptographic 
-  signature-based validation system that enables authorization based on PKIs
-  (Public Key Identification) and hands over control of the domain to a
-  specific next controller identified by their PKI. The process is designed
-  to be fully backward compatible with existing EPP systems through staged 
-  incremental upgrades.
+  This document specifies a mechanism to enhance domain transfer
+  security by transitioning from a shared-secret authorization model
+  to a cryptographic signature-based validation system that enables
+  authorization based on PKIs (Public Key Identification) and hands
+  over control of the domain to a specific next controller identified
+  by their PKI. The process is designed to be fully backward compatible
+  with existing EPP systems through staged incremental upgrades.
 
 Status of This Memo
 
@@ -80,21 +80,22 @@ Table of Contents
 
 2. Introduction
 
-This document specifies a mechanism to enhance domain transfer security by 
-transitioning from a shared-secret authorization model to a cryptographic 
-signature-based validation system that enable authorization based on PKIs
-(Public Key Identification) and hand over the control of the domain to
-specific next controller identified by their PKI. The process is designed to
-be fully backward compatible with existing EPP systems with staged incremental
-upgrades inspired by the DNSSEC, HTTPS, and Credit Card Chip migration.
+This document specifies a mechanism to enhance domain transfer security
+by transitioning from a shared-secret authorization model to a
+cryptographic signature-based validation system that enable authorization
+based on PKIs (Public Key Identification) and hand over the control of
+the domain to specific next controller identified by their PKI. The
+process is designed to be fully backward compatible with existing EPP
+systems with staged incremental upgrades inspired by the DNSSEC, HTTPS,
+and Credit Card Chip migration.
 
 The current transfer process relies on the presentation of an 
 authentication code (authcode) by the gaining registrar as proof of 
 transfer authority. 
 
 This specification defines an extended authorization information format
-that incorporates cryptographic signatures, enabling registries to validate 
-multiple aspects of the transfer request:
+that incorporates cryptographic signatures, enabling registries to
+validate multiple aspects of the transfer request:
 
   * that it originates from the legitimate domain registrant
   * that it contains the correct receiving registrant information
@@ -268,12 +269,13 @@ cryptographic signature-based domain transfer authorization system.
 
 3.5 Format in EPP Extension Element
 
-    The enhanced authorization information is encoded in XML format as an
-    EPP extension element as followed
+    The enhanced authorization information is encoded in XML format as
+    an EPP extension element as followed:
 
 3.5.1 Required Fields
 
-    The enhanced authorization information consists of the following required fields:
+    The enhanced authorization information consists of the following
+    required fields:
 
     * version - Schema version number
     * domainName - The domain name being transferred
@@ -301,77 +303,79 @@ BEGIN
         xmlns="http://www.w3.org/2001/XMLSchema"
         elementFormDefault="qualified">
 
-  <import namespace="urn:ietf:params:xml:ns:eppcom-1.0"/>
-  <import namespace="urn:ietf:params:xml:ns:epp-1.0"/>
+<import namespace="urn:ietf:params:xml:ns:eppcom-1.0"/>
+<import namespace="urn:ietf:params:xml:ns:epp-1.0"/>
 
-  <annotation>
-    <documentation>
-      Extension to EPP extAuthInfoType for secure domain transfers
-    </documentation>
-  </annotation>
+<annotation>
+  <documentation>
+    Extension to EPP extAuthInfoType for secure domain transfers
+  </documentation>
+</annotation>
 
-  <element name="secData" type="authcodesec:secDataType" 
-  substitutionGroup="eppcom:extAuthInfo"/>
+<element name="secData" type="authcodesec:secDataType" 
+substitutionGroup="eppcom:extAuthInfo"/>
 
-  <complexType name="secDataType">
-    <complexContent>
-      <extension base="eppcom:extAuthInfoType">
-        <sequence>
-          <element name="version" type="token" fixed="1.0"/>
-          <element name="domainName" type="eppcom:labelType"/>
-          <element name="nonce" type="token"/>
-          <element name="receiverInfo" type="authcodesec:entityInfoType"/>
-          <element name="approverInfo" type="authcodesec:entityInfoType"/>
-          <element name="digestInfo" type="authcodesec:digestInfoType"/>
-        </sequence>
-      </extension>
-    </complexContent>
-  </complexType>
+<complexType name="secDataType">
+  <complexContent>
+    <extension base="eppcom:extAuthInfoType">
+      <sequence>
+        <element name="version" type="token" fixed="1.0"/>
+        <element name="nonce" type="token"/>
+        <element name="receiverInfo" type="authcodesec:entityInfoType"/>
+        <element name="approverInfo" type="authcodesec:entityInfoType"/>
+        <element name="digestInfo" type="authcodesec:digestInfoType"/>
+      </sequence>
+    </extension>
+  </complexContent>
+</complexType>
 
-  <complexType name="entityInfoType">
-    <sequence>
-      <element name="type" type="authcodesec:entityTypeEnum"/>
-      <element name="key" type="base64Binary"/>
-      <element name="identifier" type="token"/>
-    </sequence>
-  </complexType>
+<complexType name="entityInfoType">
+  <sequence>
+    <element name="type" type="authcodesec:entityTypeEnum"/>
+    <element name="key" type="base64Binary"/>
+    <element name="identifier" type="token"/>
+  </sequence>
+</complexType>
 
-  <simpleType name="entityTypeEnum">
-    <restriction base="token">
-      <enumeration value="registrant"/>
-      <enumeration value="registrar"/>
-      ... TODO add other types of authorities such as
-      <enumeration value="lawEnforcement"/>
-    </restriction>
-  </simpleType>
+<simpleType name="entityTypeEnum">
+  <restriction base="token">
+    <enumeration value="registrant"/>
+    <enumeration value="registrar"/>
+    ... TODO add other types of authorities such as
+    <enumeration value="lawEnforcement"/>
+  </restriction>
+</simpleType>
 
-  <complexType name="digestInfoType">
-    <sequence>
-      <element name="algorithm" type="authcodesec:digestAlgorithmEnum"/>
-      <element name="value" type="hexBinary"/>
-    </sequence>
-  </complexType>
+<complexType name="digestInfoType">
+  <sequence>
+    <element name="algorithm" type="authcodesec:digestAlgorithmEnum"/>
+    <element name="value" type="hexBinary"/>
+  </sequence>
+</complexType>
 
-  <simpleType name="digestAlgorithmEnum">
-    <restriction base="token">
-      ... TODO: add supported algorithms / standard to define digesting
-    </restriction>
-  </simpleType>
+<simpleType name="digestAlgorithmEnum">
+  <restriction base="token">
+    ... TODO: add supported algorithms / standard to define digesting
+  </restriction>
+</simpleType>
 
 </schema>
 END
 
 3.5.3. Signature in domain:pw
 
-The signature value in domain:pw is the Base64-encoded value of the signature computed over the digest:
+The signature value in domain:pw is the Base64-encoded value of the
+signature computed over the digest:
 
 C:        <domain:authInfo>
-C:          <domain:pw>Base64EncodedSignatureValueComputedOverTheDigest...</domain:pw>
+C:          <domain:pw>Base64EncodedSignatureValueComputedOverTheDigest
+...</domain:pw>
 C:        </domain:authInfo>
 
 3.5.4 Example Usage
 
-Example of a domain transfer request with enhanced authorization information:
+Example of a domain transfer request with enhanced authorization 
+information:
 
 C:<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 C:<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
@@ -380,7 +384,8 @@ C:    <transfer op="request">
 C:      <domain:transfer xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
 C:        <domain:name>example.com</domain:name>
 C:        <domain:authInfo>
-C:          <domain:pw>Base64EncodedSignatureValueComputedOverTheDigest...</domain:pw>
+C:          <domain:pw>Base64EncodedSignatureValueComputedOverTheDigest
+            ...</domain:pw>
 C:        </domain:authInfo>
 C:      </domain:transfer>
 C:    </transfer>
@@ -392,17 +397,20 @@ C:        <authcodesec:domainName>example.com</authcodesec:domainName>
 C:        <authcodesec:nonce>f7027456abc8903d</authcodesec:nonce>
 C:        <authcodesec:receiverInfo>
 C:          <authcodesec:type>registrant</authcodesec:type>
-C:          <authcodesec:key>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...</authcodesec:key>
+C:          <authcodesec:key>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBC...
+C:          </authcodesec:key>
 C:          <authcodesec:identifier>RECV-12345</authcodesec:identifier>
 C:        </authcodesec:receiverInfo>
 C:        <authcodesec:approverInfo>
 C:          <authcodesec:type>registrant</authcodesec:type>
-C:          <authcodesec:key>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...</authcodesec:key>
+C:          <authcodesec:key>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBC...
+C:          </authcodesec:key>
 C:          <authcodesec:identifier>APPR-67890</authcodesec:identifier>
 C:        </authcodesec:approverInfo>
 C:        <authcodesec:digestInfo>
 C:          <authcodesec:algorithm>sha256</authcodesec:algorithm>
-C:          <authcodesec:value>2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824</authcodesec:value>
+C:          <authcodesec:value>2CF24DBA5FB0A30E73043362938B9824...
+C:          </authcodesec:value>
 C:        </authcodesec:digestInfo>
 C:      </authcodesec:secData>
 C:    </extension>
@@ -442,29 +450,29 @@ cryptographic signature-based system.
     +----------------+------------------------------------------+
   
   The three models are designed to allow for staged migration from the
-  current authInfo-based mechanism to the new cryptographic signature-based
-  mechanism.
+  current authInfo-based mechanism to the new cryptographic
+  signature-based mechanism.
 
   Model A is the strongest and most secure model, but also requires the
   most significant changes to existing workflows. Model C is the weakest
-  and least secure model, but also requires the least changes to existing
-  workflows.
+  and least secure model, but also requires the least changes to
+  existing workflows.
 
   Any party, registrant, registrar or registry can start by supporting
   Model C and then move to Model B or Model A as needed.
 
   Any party can add their support for Model A or Model B at any time, 
-  when transfer counter party doesn't support the same model, the transfer
-  can still be completed by falling back to a lower model, as described 
-  in section 4.4.
+  when transfer counter party doesn't support the same model, the
+  transfer can still be completed by falling back to a lower model, as
+  described in section 4.4.
 
 4.2. Model A. Full Cryptographic Model
 
 4.2.1 Request to update the PKI
 
 * Any current registrant can request its current registrar to update its 
-  registrant information with the enhanced authorization information including 
-  the PKI.
+  registrant information with the enhanced authorization information
+  including the PKI.
   * If such the current registrant already is registered with 
     a PKI, such request MUST include a crypography signature to prove
     the ownership of the PKI and apporval of the update request.
@@ -472,78 +480,85 @@ cryptographic signature-based system.
   
   (TODO: define the update flow and EPP command)
 
-  * And then the current registrar MUST submit a transfer request to the registry
-    with the enhanced authorization information to trigger the transfer
-    process. Assuming the registry supports Model A, the transfer request
-    MUST be rejected if the enhanced authorization information is missing,
-    the signature is invalid, or the PKI is not updated.
+  * And then the current registrar MUST submit a transfer request to
+    the registry with the enhanced authorization information to trigger
+    the transfer process. Assuming the registry supports Model A, the
+    transfer request MUST be rejected if the enhanced authorization
+    information is missing, the signature is invalid, or the PKI is not
+    updated.
   
   (TODO: define the error codes and error messages)
 
 4.2.2. Request to update the AuthInfo (optional)
 
-This step can be skipped if all parties in the transfer chain support Model A.
-But for backward compatibility, the current authInfo-based mechanism can be
-used as a fallback.
+This step can be skipped if all parties in the transfer chain support
+Model A.
+But for backward compatibility, the current authInfo-based mechanism can
+be used as a fallback.
 
 The current registrant can authorize a transfer of domain by signing the
 enhanced authorization information demonstrated in section 3.5.4. by 
 cryptographic signing with its PKI.
+(TODO: define an example of payload to be signed and digesting 
+algorithm)
 
-(TODO: define an example of payload to be signed and digesting algorithm)
+The signature value denoted as `sig` will be placed in the domain:pw 
+element as defined in section 3.5.3.
 
-The signature value denoted as `sig` will be placed in the domain:pw element
-as defined in section 3.5.3.
+The current registrant will then submit a transfer request to the 
+registrar, and the registrar will submit a transfer request to the 
+registry.
 
-The current registrant will then submit a transfer request to the registrar,
-and the registrar will submit a transfer request to the registry.
+The registry will verify the signature of the current registrant using 
+the PKI and the enhanced authorization information, and it will save 
+the signature value in the registry database for future reference.
 
-The registry will verify the signature of the current registrant using the PKI
-and the enhanced authorization information, and it will save the signature
-value in the registry database for future reference.
+4.2.3. The gaining registrar will submit a transfer request to the 
+registry
 
-4.2.3. The gaining registrar will submit a transfer request to the registry
+Supposedly the gaining registrar supports Model A, the gaining 
+registrant (it could be the same as the current registrant or someone 
+who bought the domain from the current registrant) will submit a 
+transfer request to the registry with the enhanced authorization 
+information.
 
-Supposedly the gaining registrar supports Model A, the gaining registrant 
-(it could be the same as the current registrant or someone who bought the
-domain from the current registrant) will submit a transfer request to the
-registry with the enhanced authorization information.
+The gaining registrar will first verify the signature of the gaining 
+registrant using the PKI and the enhanced authorization information, 
+and then it will submit a transfer request to the registry with the 
+enhanced authorization information.
 
-The gaining registrar will first verify the signature of the gaining
-registrant using the PKI and the enhanced authorization information, and
-then it will submit a transfer request to the registry with the enhanced
-authorization information.
-
-The registry will verify the signature of the gaining registrant using the PKI
-and the enhanced authorization information, if the signature is valid, the
-registry will complete the transfer process by updating the domain new owner
-to the gaining registrant, including the PKI.
+The registry will verify the signature of the gaining registrant using 
+the PKI and the enhanced authorization information, if the signature is 
+valid, the registry will complete the transfer process by updating the 
+domain new owner to the gaining registrant, including the PKI.
 
 (TODO: define example EPP command, and define the error codes and error
 messages)
 
 4.3. Fallback based on support of PKI
 
-If the registry doesn't support PKI, the transfer process will fallback to
-Model C.
+If the registry doesn't support PKI, the transfer process will fallback
+to Model C.
 
-Else if any of the registrars doesn't support PKI, the transfer process will
-fallback to Model C.
+Else if any of the registrars doesn't support PKI, the transfer process
+will fallback to Model C.
 
-Else if both registrars support PKI, the transfer process will fallback to
-Model B.
+Else if both registrars support PKI, the transfer process will fallback
+to Model B.
 
-But even if registry doesn't support PKI, if both registrars support PKI, 
-the authcode can be verified using PKI which is stronger than merely Model C.
+But even if registry doesn't support PKI, if both registrars support
+PKI, the authcode can be verified using PKI which is stronger than
+merely Model C.
 
-This incremental upgrade mechanism enables each individual registrar
-to benefit from adding the PKI support without waiting for the other
-registrar to add support, similar to the approach of DNSSEC, HTTPS deployment
-and bank credit card chips rollout.
+This incremental upgrade mechanism enables each individual registrar to
+benefit from adding the PKI support without waiting for the other
+registrar to add support, similar to the approach of DNSSEC, HTTPS
+deployment and bank credit card chips rollout.
 
 5. Security Considerations
   
-  TODO: limitation due to lack of finalization of decentralized ledgers.
+  TODO: limitation due to lack of finalization of decentralized
+  ledgers.
   
 
 6. Draft Notes
@@ -676,26 +691,30 @@ registrants at the same registrar:
       - Double-selling incidents
       - Employee misconduct
 
-6.2. Unresolved Quesiton: How to choose between pwAuthInfo and extAuthInfo?
+6.2. Unresolved Quesiton: How to choose between pwAuthInfo and
+     extAuthInfo?
 
 Scott says in 
 
-> Having said that, I designed EPP in a way that allows for specification of
-> other approaches. Section 4.2 of RFC 5730 includes the schema that defines
-> authorization information. Note the “pwAuthInfoType” and the
-> "extAuthInfoType" type definitions. "extAuthInfoType" can be used as a
-> “hook” to define a new type. Given that the capability exists, I’d suggest
-> that you send a note to the IETF REGEXT working group mailing list asking
-> if anyone is interested in the possibility of defining an extension for a
-> new PKI-based authorization information type. You’d be better of measuring
-> people’s interest in the topic before you invest a lot of time working on a
-> proposal.
-> -- S. Hollenbeck, 2024-03-19 https://mailarchive.ietf.org/arch/msg/regext/pRSTKwvDRM4WM_s-nme2PRig4Z4/
+> Having said that, I designed EPP in a way that allows for
+> specification of other approaches. Section 4.2 of RFC 5730 includes
+> the schema that defines authorization information. Note the
+> "pwAuthInfoType" and the "extAuthInfoType" type definitions.
+> "extAuthInfoType" can be used as a "hook" to define a new type.
+> Given that the capability exists, I'd suggest that you send a note
+> to the IETF REGEXT working group mailing list asking if anyone is
+> interested in the possibility of defining an extension for a new
+> PKI-based authorization information type. You'd be better of
+> measuring people's interest in the topic before you invest a lot of
+> time working on a proposal.
+> -- S. Hollenbeck, 2024-03-19
 
-In practice it domain:ext has not been widely used. And since we want to 
-maintain backward compatibility with existing systems. The author of 
-this document propose that we should choose pwAuthInfo over extAuthInfo for
-better backward compatibility.
+https://mailarchive.ietf.org/arch/msg/regext/pRSTKwvDRM4WM_s-nme2PRig4Z4/
+
+In practice it domain:ext has not been widely used. And since we want
+to maintain backward compatibility with existing systems. The author of
+this document propose that we should choose pwAuthInfo over extAuthInfo
+for better backward compatibility.
 
 7. References
 
@@ -714,6 +733,9 @@ better backward compatibility.
     * draft-ietf-regext-verificationcode-06 by J. Gould, R. Wilhelm, 
 
 7.2. Other Documents
-- Presentation: Transfer Authcodes at .se and .nu by Eric Skoglund (Apr 2024)
-- Discussion: [\[regext\]Fwd: Idea about AuthCodeSEC: use PKI Cryptography for AuthCode](https://mailarchive.ietf.org/arch/msg/regext/WPNywS9VAFhE3sJTRn9cR7FcRA4/)
+- Presentation: Transfer Authcodes at .se and .nu by Eric Skoglund
+  (Apr 2024)
+- Discussion: [\[regext\]Fwd: Idea about AuthCodeSEC: use PKI
+  Cryptography for AuthCode]
+  (https://mailarchive.ietf.org/arch/msg/regext/WPNywS9VAFhE3sJTRn9cR7FcRA4/)
 (TODO: add other documents)
