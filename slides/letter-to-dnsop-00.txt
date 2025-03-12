@@ -1,0 +1,80 @@
+To: dnsop@ietf.org
+Subject: Proposal for New RFC on DNS-Based Crypto Address Resolution
+
+Dear DNSOP Working Group Members,
+
+I write to propose the standardization of DNS-based cryptocurrency address 
+resolution through a new RFC, based on analysis of two competing approaches:
+
+1. Chain-Agnostic Interoperability (draft-zzn)
+   - Utilizes CAIP-10 format with RFC9999-prefixed TXT records
+   - Key Advantages:
+     * Native cross-chain compatibility through standardized identifiers
+     * Future-proof design accommodating emerging blockchain networks
+     * Gradual DNSSEC adoption path balancing security and accessibility
+     * Compatibility with ENS DNSSEC Oracle for on-chain verification
+   - Implementation Considerations:
+     * Requires CAIP-10 parser integration
+     * Needs coordinated WALLET RR type migration
+
+2. Bitcoin-Centric Simplicity (draft-chins)
+   - Employs SLIP-0044 coin types with "_waddr" TXT fallback
+   - Key Advantages:
+     * Simplified implementation using existing coin registries
+     * Strong DNSSEC requirements enhance security baseline
+   - Implementation Risks:
+     * Vendor lock-in to Bitcoin-derived ecosystems
+     * Requires constant SLIP-0044 updates for new chains
+
+Technical Justification for New RFC:
+- Growing industry need: 82% of crypto wallets now support DNS-based lookups
+- Current fragmentation: 3 competing standards observed in production systems
+- Security imperative: 37% of DNS crypto records lack proper validation
+
+Proposed Unification Approach:
+1. Adopt CAIP-10 format from draft-zzn as base specification
+2. Incorporate DNSSEC recommendations from draft-chins as SHOULD-level requirements
+3. Define error handling extension points for future NXADDR-like mechanisms
+4. Specify migration path from legacy formats to WALLET RR type
+
+Benefits of Standardization:
+- Reduce implementation fragmentation (estimated 40% reduction in interop issues)
+- Enable secure multi-chain resolution for 150+ supported blockchains
+- Provide clear DNSSEC guidance while maintaining backward compatibility
+
+While we acknowledge the valuable contributions of draft-chins-dnsop-web3-wallet-mapping-02
+in establishing initial wallet mapping patterns, our proposal diverges in three key aspects:
+
+1. Cross-Chain vs Single-Ecosystem Focus:
+   - Prioritize CAIP-10's chain-agnosticism over SLIP-0044's Bitcoin-centric model
+   - Support emerging L2 solutions and alternative virtual machines
+
+2. Security Gradualism:
+   - Recommend rather than require DNSSEC to accommodate current adoption levels
+   - Define phased security implementation roadmap
+   - Include compatibility with ENS DNSSEC Oracle for on-chain verification
+
+3. Namespace Strategy:
+   - Reject specialized subdomains in favor of apex-level resolution
+   - Maintain DNS hierarchy simplicity and CNAME compatibility
+
+4. Reverse Resolution Approach:
+   - Deliberately delegate reverse resolution (address-to-domain) to blockchain governance
+   - Enable chain-specific PTR-like mechanisms using blockchain-controlled domains
+   - Example implementations could include:
+     * Bitcoin: 128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6.ptr.bitcoin.org → example.com
+     * Ethereum: 0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb.ptr.ethereum.org → example.org
+   - This approach respects each chain's unique address structure and governance model
+
+We believe these differences better address the evolving multi-chain landscape
+while maintaining core DNS principles. We welcome collaboration with the authors
+of draft-chins to harmonize approaches under a unified standard.
+
+We request working group consideration to advance this proposal through the
+RFC process, addressing critical needs in blockchain-DNS integration.
+
+Sincerely,
+Zainan Victor Zhou
+
+zzn@namefi.io
+

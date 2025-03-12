@@ -1,0 +1,258 @@
+Internet Engineering Task Force (IETF)              Zainan (Victor) Zhou
+Internet-Draft                                                    Namefi
+                                                           zzn@namefi.io
+Intended status: Standards Track                             March 2025
+Expires: September 4, 2025
+
+
+          DNS-Based Crypto Address Resolution Using CAIP-10
+                   draft-zzn-crypto-address-00
+
+Abstract
+
+  This document specifies a mechanism for resolving DNS names to 
+  crypto addresses using TXT records formatted according to
+  CAIP-10 (Chain Agnostic Improvement Proposal 10) standard. The
+  specification supports multi-chain address resolution while
+  maintaining backward compatibility with existing DNS infrastructure.
+  The solution provides an optional DNSSEC implementation path for
+  enhanced security verification.
+
+Status of This Memo
+
+  This Internet-Draft is submitted in full conformance with the
+  provisions of BCP 78 and BCP 79.
+
+  Internet-Drafts are working documents of the Internet Engineering Task
+  Force (IETF).  Note that other groups may also distribute working
+  documents as Internet-Drafts.  The list of current Internet-Drafts is
+  at https://datatracker.ietf.org/drafts/current/.
+
+  Internet-Drafts are draft documents valid for a maximum of six months
+  and may be updated, replaced, or obsoleted by other documents at any
+  time.  It is inappropriate to use Internet-Drafts as reference
+  material or to cite them other than as "work in progress."
+
+  This Internet-Draft will expire on September 4, 2025.
+
+Copyright Notice
+
+  Copyright (c) 2025 IETF Trust and the persons identified as the
+  document authors.  All rights reserved.
+
+1. Introduction
+
+  The growing adoption of blockchain technologies has created a need
+  for standardized crypto address resolution in the DNS. This
+  specification addresses this need by:
+
+  a) Defining a TXT record format using CAIP-10 syntax for cross-chain
+     compatibility
+  b) Providing an upgrade path for future WALLET RR type adoption
+  c) Maintaining backward compatibility with existing DNS infrastructure
+  d) Supporting optional DNSSEC validation
+
+  Note: References to "RFC9999" in this document are placeholders for
+  the future RFC number assigned to this specification. Implementations
+  MUST replace "9999" with the actual RFC number once assigned.
+
+1.1. Requirements Notation
+
+  The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+  "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+  "OPTIONAL" in this document are to be interpreted as described in
+  BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+  capitals, as shown here.
+
+2. Protocol Specification
+
+2.1. TXT Record Format
+
+  Crypto addresses MUST be encoded using CAIP-10 format prefixed with
+  "RFC9999" until the WALLET RR type is standardized:
+
+  RFC9999 <caip10_encoded_address>
+
+  TXT records containing crypto addresses MUST be placed at the domain apex
+  level rather than subdomains. The records SHOULD NOT use specialized
+  subdomains like '_wallet' or '_crypto' for this purpose.
+
+  Example TXT records:
+  ; Correct - RFC9999 prefixed
+  example.com. IN TXT "RFC9999 caip10:eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
+  
+  ; Bitcoin Mainnet
+  example.com. IN TXT "RFC9999 caip10:bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
+  
+  ; Cosmos Hub
+  example.com. IN TXT "RFC9999 caip10:cosmos:cosmoshub-3:cosmos1t2uflqwqe0fsj0shcfkrvpukewcw40yjj6hdc0"
+  
+  ; Polkadot Kusama
+  example.com. IN TXT "RFC9999 caip10:polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
+
+  ; Incorrect - missing prefix
+  example.com. IN TXT "caip10:eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
+
+2.2. WALLET RR Compatibility
+
+  When the WALLET RR type [IANA-WALLET] becomes available:
+  - Implementations MUST use the CAIP-10 value *without* RFC9999 prefix
+  - TXT records SHOULD be migrated to WALLET RR format
+  - Resolvers MUST prioritize WALLET RR over TXT records when both exist
+
+  Example WALLET record:
+  ; Migrated from TXT
+  example.com. IN WALLET "caip10:eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
+
+  The WALLET RR specification:
+  - MUST use the same CAIP-10 format as TXT records
+  - SHOULD replace existing TXT records when deployed
+  - Maintains backward compatibility through identical content
+  - Inherits all validation rules from TXT record implementation
+
+  Note: While the IANA submission allows for separate cryptocurrency
+  abbreviations, this specification recommends using CAIP-10 formatted
+  values exclusively for cross-chain compatibility and consistency.
+
+2.3. DNSSEC Implementation
+
+  DNSSEC signing MAY be used to verify address records but is NOT
+  REQUIRED for basic functionality. Implementations SHOULD follow
+  DNSSEC best practices as defined in BCP 237 [RFC9364] when enabled.
+
+2.4. Record Handling Considerations
+
+2.4.1. Multiple Records
+
+  Domains MAY contain multiple crypto address records to support:
+  - Different blockchain networks (e.g., Ethereum and Bitcoin)
+  - Multiple addresses for the same chain
+  - Address rotation strategies
+
+  Example:
+  example.com. IN TXT "RFC9999 caip10:eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
+  example.com. IN TXT "RFC9999 caip10:bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
+
+  Resolvers:
+  - MUST process all valid records
+  - SHOULD return addresses in priority order specified by local policy
+  - MUST NOT assume any inherent ordering of records in DNS responses
+  - MAY apply client-specific filtering based on chain compatibility
+
+2.4.2. Size Limitations
+
+  Implementations MUST adhere to DNS record size constraints:
+  - TXT records: Maximum 255 characters per string segment
+  - UDP responses: Stay under 512 bytes (or 4096 with EDNS0)
+  
+  For CAIP-10 addresses exceeding these limits:
+  - Split TXT records using standard chunking (e.g., "RFC9999 (part1" "part2)")
+  - Prefer WALLET RR when available as it doesn't require prefix
+  - Consider compressed encoding formats if supported by the blockchain
+
+2.4.3. CNAME Considerations
+
+  The CNAME record type [RFC1034] creates special considerations for
+  crypto address resolution:
+
+  - Crypto address records (TXT or WALLET RR) MUST NOT be placed at
+    domain names that are CNAME aliases
+  - Resolvers MUST perform CNAME resolution before processing crypto
+    address records
+  - Implementations SHOULD follow the chain of CNAME redirections until
+    reaching the canonical name's apex records
+
+  Example invalid configuration:
+  ; CNAME alias (invalid for crypto addresses)
+  wallet.example.com. IN CNAME example.org.
+  wallet.example.com. IN TXT "RFC9999 caip10:eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
+
+  Example valid configuration:
+  ; CNAME resolved before processing
+  example.com. IN CNAME example.org.
+  example.org. IN TXT "RFC9999 caip10:eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
+
+2.5. Reverse Resolution Considerations
+
+  This specification intentionally does not define a standard for the
+  reverse resolution of crypto addresses to domain names (similar to how
+  PTR records function for IP addresses). Reverse mapping mechanisms are
+  intentionally left to be defined by each blockchain's governance
+  structure for several reasons:
+
+  - Address structures vary significantly across blockchains
+  - Blockchain-specific storage constraints apply to on-chain data
+  - Chain governance systems may have different verification requirements
+  - On-chain vs. off-chain resolution tradeoffs differ by ecosystem
+
+  Implementations MAY explore blockchain-specific PTR-like mechanisms that:
+  - Link CAIP-10 formatted addresses to domain names
+  - Provide verifiable claims of address ownership
+  - Employ chain-native verification methods
+  - Consider chain-specific security and privacy requirements
+
+  Cross-chain standards bodies MAY develop complementary specifications
+  for reverse resolution that integrate with this standard.
+
+  Example blockchain-specific reverse resolution mechanisms might include:
+
+  ; Bitcoin example (managed by Bitcoin Core maintainers)
+  128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6.ptr.bitcoin.org. IN A 203.0.113.1
+  128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6.ptr.bitcoin.org. IN TXT "example.com"
+
+  ; Ethereum example (managed by Ethereum Foundation)
+  0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb.ptr.ethereum.org. IN A 203.0.113.2
+  0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb.ptr.ethereum.org. IN TXT "example.org"
+
+  Note: The above examples illustrate potential approaches and are not
+  normative. Each blockchain community should define standards that best
+  suit their ecosystem's technical requirements and governance model.
+
+3. Security Considerations
+
+3.1. Address Validation
+
+  For TXT records:
+  - MUST start with "RFC9999 " followed by CAIP-10 format
+  - MUST NOT contain additional text beyond the prefix and CAIP-10 value
+  - MUST be validated as case-sensitive exact matches or casing checksum matches as required by CAIP-10
+
+  For WALLET RR:
+  - MUST NOT include RFC9999 prefix
+  - MUST follow same validation as TXT records
+
+3.2. DNSSEC Considerations
+
+  When using DNSSEC, implementers should be aware of:
+  - Key management requirements for zone signing
+  - Potential vulnerabilities in unsigned implementations
+  - Chain-of-trust validation requirements
+
+4. References
+
+4.1. Normative References
+
+  [RFC1034] Mockapetris, P., "Domain names - concepts and facilities",
+            STD 13, RFC 1034, DOI 10.17487/RFC1034, November 1987.
+
+  [RFC1035] Mockapetris, P., "Domain names - implementation and
+            specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
+            November 1987.
+
+  [RFC9364]  A. Austein, D. Lawrence, "DNSSEC Operational Practices, Version 2",
+            BCP 234, RFC 9364, DOI 10.17487/RFC9364, February 2023,
+            <https://www.rfc-editor.org/info/rfc9364>
+
+4.2. Informative References
+
+  [CAIP-10]  Gomes, P., "CAIP-10: Account ID Specification",
+            Chain Agnostic Improvement Proposals, October 2023,
+            <https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md>
+
+  [ENS-DNSSEC] Johnson, N., "ENS DNSSEC Documentation",
+            Ethereum Name Service, January 2023,
+            <https://docs.ens.domains/contract-api-reference/dns-registrar>
+
+  [IANA-WALLET] Hoffman, P., "WALLET RR Type Application", 
+            IANA Submission, 24 June 2024,
+            <https://www.iana.org/assignments/dns-parameters/WALLET/wallet-completed-template>

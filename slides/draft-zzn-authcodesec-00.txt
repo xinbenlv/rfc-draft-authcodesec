@@ -1,8 +1,8 @@
 Internet Engineering Task Force (IETF)              Zainan (Victor) Zhou
 Internet-Draft                                                    Namefi
                                                            zzn@namefi.io
-Intended status: Standards Track                            October 2024
-Expires: April 30, 2025
+Intended status: Standards Track                        November 2, 2024
+Expires: May 1, 2025
 
 
      Domain Transfer Authorization Using Cryptographic Signatures
@@ -33,7 +33,7 @@ Status of This Memo
   time.  It is inappropriate to use Internet-Drafts as reference
   material or to cite them other than as "work in progress."
 
-  This Internet-Draft will expire on April 27, 2025.
+  This Internet-Draft will expire on May 1, 2025.
 
 Copyright Notice
 
@@ -740,3 +740,9 @@ for better backward compatibility.
   Cryptography for AuthCode]
   (https://mailarchive.ietf.org/arch/msg/regext/WPNywS9VAFhE3sJTRn9cR7FcRA4/)
 (TODO: add other documents)
+
+Author's Address
+
+   Zainan (Victor) Zhou
+   Namefi
+   Email: zzn@namefi.io
