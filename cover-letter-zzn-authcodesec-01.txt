@@ -1,0 +1,38 @@
+Dear REGEXT Working Group,
+
+Per feedback received during IETF 121 and subsequent list discussions, 
+version 01 of the AuthCodeSEC draft incorporates:
+
+1. Simplified Registrar-Centric Model
+   - Removed registrant-facing crypto requirements
+   - Focus on registrar-to-registry cryptographic proof
+   - Maintains losing registrar approval authority
+
+2. Standards-Based Cryptography
+   - X.509 and IETF-standardized algorithms only
+   - JWK/PEM key format support
+   - Integration with existing HSM infrastructures
+
+3. Backward Compatibility
+   - Pure extension of RFC 5730 extAuthInfo
+   - Zero required changes for registrants
+   - Gradual adoption path for registries
+
+Key Changes from -00:
+- Removed registrant crypto requirements
+- Added standards-compliant crypto choices
+- Simplified to single authorization model
+- Enhanced key management specifications
+- Added operational security considerations
+
+We seek feedback on:
+1. Appropriate cryptographic profile requirements
+2. Key exchange mechanism preferences
+3. Nonce handling implementations
+
+The draft continues our work to enhance transfer security while 
+respecting existing operational practices.
+
+Best regards,
+Victor Zhou
+Namefi
