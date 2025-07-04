@@ -76,3 +76,7 @@ Overall Sentiment:
 - Interesting concept but questionable whether the complexity is justified
 - Recommendation to continue discussion on the mailing list
 - No immediate objections to further exploration of the idea
+
+## Motivation
+
+- https://domainnamewire.com/2025/06/23/domain-registrar-openprovider-exposed-transfer-codes-registrant-data-in-data-leak/
