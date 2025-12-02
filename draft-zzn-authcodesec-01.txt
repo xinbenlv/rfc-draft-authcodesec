@@ -2,8 +2,10 @@ Network Working Group                                            Z. Zhou
 Internet-Draft                                                    Namefi
 Intended status: Standards Track                         1 December 2025
 Expires: 4 June 2026
+
      Domain Transfer Authorization Using Cryptographic Signatures
-                   draft-zzn-authcodesec-01
+                     draft-zzn-authcodesec-01
+
 Abstract
 
    This document specifies a mechanism to enhance domain transfer
@@ -23,15 +25,16 @@ Abstract
    1. Where to place the signature and hash data in the EPP command and
    2. How is data hashed and signed, and how to verify the signature
    3. How to verify the signature;
+
 Status of This Memo
 
    This Internet-Draft is submitted in full conformance with the
    provisions of BCP 78 and BCP 79.
 
-   Internet-Drafts are working documents of the Internet Engineering Task
-   Force (IETF).  Note that other groups may also distribute working
-   documents as Internet-Drafts.  The list of current Internet-Drafts is
-   at https://datatracker.ietf.org/drafts/current/.
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
@@ -39,95 +42,58 @@ Status of This Memo
    material or to cite them other than as "work in progress."
 
    This Internet-Draft will expire on 4 June 2026.
+
 Copyright Notice
 
    Copyright (c) 2025 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents
-   (https://trustee.ietf.org/license-info) in effect on the date of
-   publication of this document.  Please review these documents
-   carefully, as they describe your rights and restrictions with respect
-   to this document.
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
 
+Zhou                      Expires 4 June 2026                   [Page 1]
 
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 1]
-Internet-Draft          AuthCodeSEC           December 2025
+Internet-Draft          AuthCodeSEC                       December 2025
 
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-     1.1.  Motivation  . . . . . . . . . . . . . . . . . . . . . . .   2
-     1.2.  Scope of this Specification . . . . . . . . . . . . . . .   3
-     1.3.  Current AuthCode Processes  . . . . . . . . . . . . . . .   3
-     1.4.  Requirements Language . . . . . . . . . . . . . . . . . .   3
-   2.  Protocol Description  . . . . . . . . . . . . . . . . . . . .   5
-     2.1.  EPP Extension Data Structure  . . . . . . . . . . . . . .   5
-     2.2.  Data Canonicalization and Digest Generation . . . . . . .   6
-     2.3.  Asymmetric Cryptographic Authentication . . . . . . . . .   6
-     2.4.  Public Key Distribution . . . . . . . . . . . . . . . . .   7
-   3.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
-   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
-   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
-     5.2.  Informative References  . . . . . . . . . . . . . . . . .   8
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 2]
-Internet-Draft          AuthCodeSEC           December 2025
+     1.1.  Motivation  . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.2.  Scope of this Specification . . . . . . . . . . . . . . .   4
+     1.3.  Current AuthCode Processes  . . . . . . . . . . . . . . .   5
+     1.4.  Requirements Language . . . . . . . . . . . . . . . . . .   6
+   2.  Protocol Description  . . . . . . . . . . . . . . . . . . . .   6
+     2.1.  EPP Extension Data Structure  . . . . . . . . . . . . . .   6
+     2.2.  Data Canonicalization and Digest Generation . . . . . . .   7
+     2.3.  Asymmetric Cryptographic Authentication . . . . . . . . .   8
+     2.4.  Public Key Distribution . . . . . . . . . . . . . . . . .   9
+   3.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   9
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
+   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   9
+     5.2.  Informative References  . . . . . . . . . . . . . . . . .  10
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  11
 
 1.  Introduction
 
    The current domain transfer process relies on a shared secret
    (authInfo) which is susceptible to interception, misuse, and lack of
    auditability. This document proposes a simplified, secure replacement
-   using cryptographic signatures, building upon the Extensible 
+   using cryptographic signatures, building upon the Extensible
    Provisioning Protocol (EPP) [RFC5730].
 
    Key features of this specification:
-   *   Mandatory use of ECDSA Curve P-256 with SHA-256 for strong security.
-   *   A flexible "Signer Payload" to clearly identify who authorized the
-       transfer (e.g., Registrar, Regulator, Registry, or Registrant).
+
+   *   Mandatory use of ECDSA Curve P-256 with SHA-256 for strong
+       security.
+
+   *   A flexible "Signer Payload" to clearly identify who authorized
+       the transfer (e.g., Registrar, Regulator, Registry, or
+       Registrant).
+
    *   Removal of complex transition models in favor of a clean,
        signature-based approach.
 
@@ -140,39 +106,24 @@ Zhou                      Expires 4 June 2026                 [Page 2]
    Two notable precedents within the IETF serve as guiding examples for
    this specification:
 
-   *   **HTTP to HTTPS (RFC 2818)**: The transition from plain HTTP to
-       HTTP Over TLS addressed the inherent risks of eavesdropping,
+   *   HTTP to HTTPS (RFC 2818): The transition from plain HTTP to HTTP
+       Over TLS addressed the inherent risks of eavesdropping,
+
+Zhou                      Expires 4 June 2026                   [Page 2]
+
+Internet-Draft          AuthCodeSEC                       December 2025
+
        tampering, and man-in-the-middle attacks. By layering HTTP over
        TLS, the protocol ensured confidentiality and server
        authentication, eliminating the reliance on clear-text
        communication.
 
-   *   **DNS to DNSSEC (RFC 4033, 4034, 4035)**: The original Domain Name
+   *   DNS to DNSSEC (RFC 4033, 4034, 4035): The original Domain Name
        System lacked data origin authentication and integrity. DNSSEC
-       introduced cryptographic signatures to the DNS hierarchy, allowing
-       resolvers to verify that data originated from the authoritative
-       source and was not modified in transit, thus mitigating cache
-       poisoning and spoofing attacks.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 3]
-Internet-Draft          AuthCodeSEC           December 2025
+       introduced cryptographic signatures to the DNS hierarchy,
+       allowing resolvers to verify that data originated from the
+       authoritative source and was not modified in transit, thus
+       mitigating cache poisoning and spoofing attacks.
 
    AuthCodeSEC applies these same principles to the domain transfer
    process. The current shared-secret (AuthCode) model resembles the
@@ -182,70 +133,114 @@ Zhou                      Expires 4 June 2026                 [Page 3]
    By adopting asymmetric cryptographic signatures, this specification
    achieves:
 
-   1.  **Strong Authentication**: Replaces a static password with a
-       digital signature, proving possession of a private key without
-       revealing it.
+   1.  Strong Authentication: Replaces a static password with a digital
+       signature, proving possession of a private key without revealing
+       it.
 
-   2.  **Elimination of Shared Secret Risks**: Significantly reduces the
+   2.  Elimination of Shared Secret Risks: Significantly reduces the
        attack surface by removing the shared secret entirely.
-       *   **Transit**: The private key is never transmitted, making
+
+       *   Transit: The private key is never transmitted, making
            credential eavesdropping impossible.
-       *   **Storage**: Registries no longer need to store and secure
+
+       *   Storage: Registries no longer need to store and secure
            password databases, eliminating a major source of potential
            data leakage.
 
-   3.  **Integrity**: Ensures the transfer request data (domain, gaining
-       registrar, timestamp) has not been tempered with.
+   3.  Integrity: Ensures the transfer request data (domain, gaining
+       registrar, timestamp) has not been tampered with.
 
-   4.  **Non-repudiation**: Provides cryptographic proof of the
-       authorizing entity's intent, which is critical for audit trails
-       and dispute resolution.
+   4.  Non-repudiation: Provides cryptographic proof of the authorizing
+       entity's intent, which is critical for audit trails and dispute
+       resolution.
 
-   5.  **Replay Protection**: Mitigates the risk of intercepted
+   5.  Replay Protection: Mitigates the risk of intercepted
        authorization codes being reused maliciously or replayed.
 
    This transition modernizes domain transfers to meet the security
    standards established by other critical Internet infrastructure
    protocols.
 
+Zhou                      Expires 4 June 2026                   [Page 3]
+
+Internet-Draft          AuthCodeSEC                       December 2025
+
 1.2.  Scope of this Specification
 
    This specification defines the following elements of the AuthCodeSEC
    protocol:
 
-   1.  **EPP Extension Data Structure**: The definition of the XML schema
-       and element placement within the EPP `domain:transfer` command to
+   1.  EPP Extension Data Structure: The definition of the XML schema
+       and element placement within the EPP domain:transfer command to
        transport the signature, signer identity, and metadata.
 
+   2.  Data Canonicalization and Digest Generation: The specific rules
+       for formatting the transfer data (including domain name, gaining
+       registrar ID, and timestamp) into a canonical string and hashing
+       it with a specific hash algorithm.
 
+   3.  Asymmetric Cryptographic Authentication: The specific rules for
+       signing the hash of the transfer data with a specific asymmetric
+       cryptographic algorithm.
 
-
-
-
-
-
-
-
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 4]
-Internet-Draft          AuthCodeSEC           December 2025
-
-   2.  **Data Canonicalization and Digest Generation**: The specific
-       rules for formatting the transfer data (including domain name,
-       gaining registrar ID, and timestamp) into a canonical string and
-       hashing it with a specific hash algorithm.
-
-   3.  **Asymmetric Cryptographic Authentication**: 
-       The specific rules for signing the hash of the transfer data 
-       with a specific asymmetric cryptographic algorithm.
-
-   4.  **Distribution of Public Keys**: The specific rules for distributing
-       the public key to the gaining registrar or other validating parties
-       such as the registry or regulator.
+   4.  Distribution of Public Keys: The specific rules for distributing
+       the public key to the gaining registrar or other validating
+       parties such as the registry or regulator.
 
 1.3.  Current AuthCode Processes
+
+   The current [RFC5731] defines the following transfer process:
+
+   1.  The Losing Client (LC) maintains and sets the AuthInfo for an
+       object at the EPP Server (Registry).
+
+   2.  The Registrant obtains the AuthInfo from LC out-of-band and
+       provides it to the Gaining Client (GC).
+
+   3.  GC initiates a transfer request with the AuthInfo.
+
+   4.  The server validates the AuthInfo and creates a pending transfer.
+
+   5.  LC may approve, reject, or take no action (auto-approve after
+       pending period).
+
+   6.  GC may query for final transfer status.
+
+   Domain Transfer Request (AuthCode) XML Example:
+
+   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+   <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+     <command>
+       <transfer op="request">
+         <domain:transfer
+          xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+
+Zhou                      Expires 4 June 2026                   [Page 4]
+
+Internet-Draft          AuthCodeSEC                       December 2025
+
+           <domain:name>example.com</domain:name>
+           <domain:period unit="y">1</domain:period>
+           <domain:authInfo>
+             <domain:pw roid="JD1234-REP">2fooBAR</domain:pw>
+           </domain:authInfo>
+         </domain:transfer>
+       </transfer>
+       <clTRID>ABC-12345</clTRID>
+     </command>
+   </epp>
+
+   Key Fields:
+
+   *   op="request": Indicates we are initiating a transfer.
+
+   *   domain:period: (Optional) Extension to the registration period
+       upon successful transfer (usually 1 year).
+
+   *   domain:authInfo: The authorization code provided by the
+       registrant.
+
+   *   domain:pw: The actual text password (AuthCode).
 
 1.4.  Requirements Language
 
@@ -255,156 +250,33 @@ Zhou                      Expires 4 June 2026                 [Page 4]
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-   The current [RFC5731] defines the following sequence diagram:
-
-```mermaid
-sequenceDiagram
-    autonumber
-
-    participant GC as Gaining Client<br/>(GC)
-    participant S as EPP Server<br/>(Registry)
-    participant LC as Losing Client<br/>(LC)
-
-    Note over LC,S: Object is sponsored by LC
-
-    %% 1. LC maintains AuthInfo
-    LC->>S: Update object (set / refresh AuthInfo)
-    S-->>LC: Update OK
-
-    Note over LC,GC: Registrant obtains AuthInfo from LC (out-of-band)
-    and provides it to GC
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 5]
-Internet-Draft          AuthCodeSEC           December 2025
-
-    %% 2. GC initiates transfer using AuthInfo
-    GC->>S: Transfer Request (with AuthInfo)
-    S-->>GC: Transfer Pending
-(AuthInfo validated, transfer created)
-
-    %% 3. LC makes decision
-    alt LC approves
-        LC->>S: Transfer Approve
-        S-->>LC: Transfer Approved
-        Note over S: Sponsorship moves to GC
-Transfer completes immediately
-    else LC rejects
-        LC->>S: Transfer Reject
-        S-->>LC: Transfer Rejected
-        Note over S: Sponsorship remains with LC
-    else LC takes no action
-        Note over S: Pending period lapses → Auto-approve
-Sponsorship moves to GC
-    end
-
-    %% 4. GC may query final status
-    GC->>S: Transfer Query (optional)
-    S-->>GC: Final transfer status
-```
-
-Domain Transfer Request (AuthCode) XML Example
-
-   This is the command sent by the Gaining Registrar. Note the specific
-   domain:transfer namespace and the domain:pw (AuthCode).
-
-   C:<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-   C:<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
-   C:  <command>
-   C:    <!-- The generic transfer command with operation "request" -->
-   C:    <transfer op="request">
-   C:      <!-- Domain-specific child element (RFC 5731) -->
-   C:      <domain:transfer
-   C:       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-   C:        <domain:name>example.com</domain:name>
-   C:        <domain:period unit="y">1</domain:period>
-   C:        <domain:authInfo>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 6]
-Internet-Draft          AuthCodeSEC           December 2025
-
-   C:          <domain:pw roid="JD1234-REP">2fooBAR</domain:pw>
-   C:        </domain:authInfo>
-   C:      </domain:transfer>
-   C:    </transfer>
-   C:    <clTRID>ABC-12345</clTRID>
-   C:  </command>
-   C:</epp>
-
-   Key Fields:
-
-   op="request":  Indicates we are initiating a transfer.
-
-   domain:period:  (Optional) extensions to the registration period upon
-       successful transfer (usually 1 year).
-
-   domain:authInfo:  The authorization code provided by the registrant.
-
-   roid:  (Optional) The Repository Object ID of the auth info, if
-       required.
-
-   domain:pw:  The actual text password (AuthCode).
-
 2.  Protocol Description
 
-2.1. EPP Extension Data Structure
+2.1.  EPP Extension Data Structure
 
    The EPP extension data structure is defined as follows:
 
-   C:<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-   C:<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
-   C:  <command>
-   C:    <transfer op="request">
-   C:      <domain:transfer
-            xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-   C:        <domain:name>example.com</domain:name>
-   C:        <domain:period unit="y">1</domain:period>
-   C:      </domain:transfer>
-   C:    </transfer>
-   C:  </command>
-   C:</epp>
+   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+   <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+     <command>
+       <transfer op="request">
+         <domain:transfer
+          xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+           <domain:name>example.com</domain:name>
+           <domain:period unit="y">1</domain:period>
+         </domain:transfer>
+       </transfer>
+     </command>
+   </epp>
 
-   We are replacing the <domain:pw> with <domain:ext> to support
-   custom authentication mechanisms (e.g., digital signatures or
-   tokens).
-   
-   TODO defined detailed schema for the <domain:ext> element.
+Zhou                      Expires 4 June 2026                   [Page 5]
 
+Internet-Draft          AuthCodeSEC                       December 2025
 
+   We are replacing the <domain:pw> with <domain:ext> to support custom
+   authentication mechanisms (e.g., digital signatures or tokens).
 
-
-
-
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 7]
-Internet-Draft          AuthCodeSEC           December 2025
+   TODO: Define detailed schema for the <domain:ext> element.
 
 2.2.  Data Canonicalization and Digest Generation
 
@@ -427,55 +299,51 @@ Zhou                      Expires 4 June 2026                 [Page 7]
    The canonicalized string is then hashed using the SHA-256 algorithm
    to produce the digest that will be signed.
 
-   **Receiver Info**: The identifier of receiver, can be the gaining
+   Receiver Info: The identifier of receiver, can be the gaining
    registrar (e.g., IANA ID or other identifiers e.g. domain name of
-   the registrar).
-   If the authorizing party wishes to restrict the transfer to a specific
-   receiver, this field MUST be populated. If this field is left
-   empty, the authorization is valid for ANY receiver. This fits 
-   the use case like a gaining registrar is not yet determined or
-   disclosed to the losing registrar.
+   the registrar). If the authorizing party wishes to restrict the
+   transfer to a specific receiver, this field MUST be populated. If
+   this field is left empty, the authorization is valid for ANY
+   receiver. This fits the use case like a gaining registrar is not yet
+   determined or disclosed to the losing registrar.
 
 2.3.  Asymmetric Cryptographic Authentication
 
    To ensure interoperability and security, this specification mandates
-   the use of specific algorithms while allowing for future extensibility.
+   the use of specific algorithms while allowing for future
+   extensibility.
 
-   *   **Signing Algorithm**: Implementations MUST support ECDSA Curve
-       P-256 with SHA-256. This corresponds to:
-       *   DNSSEC: IANA DNS Security Algorithm Number 13
+   *   Signing Algorithm: Implementations MUST support ECDSA Curve P-256
+       with SHA-256. This corresponds to:
+
+       -   DNSSEC: IANA DNS Security Algorithm Number 13
            (ECDSAP256SHA256) [RFC6605] [IANA-DNS-SEC-ALG].
-       *   SSL/TLS: IANA TLS 1.3 TLS SignatureScheme 0x0403
+
+       -   SSL/TLS: IANA TLS 1.3 TLS SignatureScheme 0x0403
            (ecdsa_secp256r1_sha256) [RFC8446] [IANA-TLS-PARAMS].
-       *   JWT: IANA JSON Web Signature and Encryption Algorithms
+
+Zhou                      Expires 4 June 2026                   [Page 6]
+
+Internet-Draft          AuthCodeSEC                       December 2025
+
+       -   JWT: IANA JSON Web Signature and Encryption Algorithms
            "ES256" (ECDSA using P-256 and SHA-256) [IANA-JOSE].
-       *   FIDO: FIDO Registry of Predefined Values
-           "ALG_SIGN_SECP256R1_ECDSA_SHA256_DER" (0x0002)
-           [FIDO-REGISTRY].
 
+       -   FIDO: FIDO Registry of Predefined Values
+           "ALG_SIGN_SECP256R1_ECDSA_SHA256_DER" (0x0002) [FIDO-REGISTRY].
 
-
-
-
-
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 8]
-Internet-Draft          AuthCodeSEC           December 2025
-
-   *   **Extensibility**: The protocol allows specifying other algorithms
-       in the `alg` field for future extensibility. As described in 
+   *   Extensibility: The protocol allows specifying other algorithms in
+       the "alg" field for future extensibility. As described in
        [RFC7518], additional algorithms may be supported.
 
-2.4. Public Key Distribution
+2.4.  Public Key Distribution
 
-   The public key is distributed to all verifying parties, such as
-   the gaining registrar, the registry, and the regulator.
-   via the following mechanisms:
+   The public key is distributed to all verifying parties, such as the
+   gaining registrar, the registry, and the regulator, via the following
+   mechanisms:
 
-   *   Registrar uses their DNS to publish the public key
-       to the registry and other verifying parties.
+   *   Registrar uses their DNS to publish the public key to the
+       registry and other verifying parties.
 
 3.  IANA Considerations
 
@@ -484,12 +352,12 @@ Zhou                      Expires 4 June 2026                 [Page 8]
    *   New hash algorithm registry.
    *   New signing algorithm registry.
 
-   TODO: define the IANA considerations for
-   how to register the new hash algorithms and signing algorithms.
+   TODO: Define the IANA considerations for how to register the new
+   hash algorithms and signing algorithms.
 
 4.  Security Considerations
 
-   TODO: define the security considerations for the protocol.
+   TODO: Define the security considerations for the protocol.
 
 5.  References
 
@@ -497,49 +365,46 @@ Zhou                      Expires 4 June 2026                 [Page 8]
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
-              DOI 10.17487/RFC2119, March 1997.
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
 
    [RFC5730]  Hollenbeck, S., "Extensible Provisioning Protocol (EPP)",
-              STD 69, RFC 5730, DOI 10.17487/RFC5730, August 2009.
+              STD 69, RFC 5730, DOI 10.17487/RFC5730, August 2009,
+              <https://www.rfc-editor.org/rfc/rfc5730>.
 
    [RFC5731]  Hollenbeck, S., "Extensible Provisioning Protocol (EPP)
               Domain Name Mapping", STD 69, RFC 5731,
-              DOI 10.17487/RFC5731, August 2009.
+              DOI 10.17487/RFC5731, August 2009,
+              <https://www.rfc-editor.org/rfc/rfc5731>.
 
-   [RFC6605]  Hoffman, P. and W. Wijngaards, "Elliptic Curve Digital
+Zhou                      Expires 4 June 2026                   [Page 7]
+
+Internet-Draft          AuthCodeSEC                       December 2025
+
+   [RFC6605]  Hoffman, P. and W.C.A. Wijngaards, "Elliptic Curve Digital
               Signature Algorithm (DSA) for DNSSEC", RFC 6605,
-              DOI 10.17487/RFC6605, April 2012.
-
-
-
-
-
-
-
-
-
-
-Zhou                      Expires 4 June 2026                 [Page 9]
-Internet-Draft          AuthCodeSEC           December 2025
+              DOI 10.17487/RFC6605, April 2012,
+              <https://www.rfc-editor.org/rfc/rfc6605>.
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
-              May 2017.
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
    [RFC8446]  Rescorla, E., "The Transport Layer Security (TLS) Protocol
-              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018.
+              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+              <https://www.rfc-editor.org/rfc/rfc8446>.
 
    [IANA-DNS-SEC-ALG]
               IANA, "Domain Name System Security (DNSSEC) Algorithm
-              Numbers",
-              <https://www.iana.org/assignments/dns-sec-alg-numbers/
-              dns-sec-alg-numbers.xhtml>.
+              Numbers", <https://www.iana.org/assignments/dns-sec-alg-
+              numbers/dns-sec-alg-numbers.xhtml>.
 
 5.2.  Informative References
 
    [RFC7518]  Jones, M., "JSON Web Algorithms (JWA)", RFC 7518,
-              DOI 10.17487/RFC7518, May 2015.
-    
+              DOI 10.17487/RFC7518, May 2015,
+              <https://www.rfc-editor.org/rfc/rfc7518>.
+
    [IANA-TLS-PARAMS]
               IANA, "Transport Layer Security (TLS) Parameters",
               <https://www.iana.org/assignments/tls-parameters/
@@ -554,6 +419,22 @@ Zhou                      Expires 4 June 2026                 [Page 9]
               FIDO Alliance Review Draft 02 July 2018,
               <https://fidoalliance.org/specs/fido-v2.0-rd-20180702/
               fido-registry-v2.0-rd-20180702.html>.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zhou                      Expires 4 June 2026                   [Page 8]
+
+Internet-Draft          AuthCodeSEC                       December 2025
 
 Author's Address
 
@@ -577,5 +458,32 @@ Author's Address
 
 
 
-Zhou                      Expires 4 June 2026                 [Page 10]
-
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zhou                      Expires 4 June 2026                   [Page 9]
