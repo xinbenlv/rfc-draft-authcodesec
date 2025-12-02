@@ -1,34 +1,34 @@
 Dear REGEXT Working Group,
 
-Per feedback received during IETF 121 and subsequent list discussions, 
-version 01 of the AuthCodeSEC draft incorporates:
+## Per feedback received during IETF 121:
 
-1. Simplified Registrar-Centric Model
-   - Removed registrant-facing crypto requirements
-   - Focus on registrar-to-registry cryptographic proof
-   - Maintains losing registrar approval authority
+1. Question: "Registrars still need to have control over the transfer process"
+Answer: we address it by letting registrar be the first supported signer.
 
-2. Standards-Based Cryptography
-   - X.509 and IETF-standardized algorithms only
-   - JWK/PEM key format support
-   - Integration with existing HSM infrastructures
+2. Question: "Complexity arrises from managing signing keys and
+performing signature generation"
+Answer: we address it by making ECDSA Curve P-256 with SHA-256 the
+first supported algorithm, which is widely adopted in DNSSEC, SSL/TLS, JWT, and FIDO.
 
-3. Backward Compatibility
-   - Pure extension of RFC 5730 extAuthInfo
-   - Zero required changes for registrants
-   - Gradual adoption path for registries
+3. Question: "ICANN is already introducing more secured transfer process such as
+making authcode more short-lived"
+Answer: this is a good point, but we believe that this is a
+separate issue from the one we are addressing, which is allowing 
+asymmetric cryptographic signatures to be used for transfer
+authorization. Short-lived authcodes are still plain text and
+subject to interception, misuse, and lack of auditability.
 
-Key Changes from -00:
-- Removed registrant crypto requirements
-- Added standards-compliant crypto choices
-- Simplified to single authorization model
-- Enhanced key management specifications
-- Added operational security considerations
+4. Question: "What is the key exchange mechanism?"
+Answer: one way to do it is via DNSSEC or HTTPS's existing key exchange
+mechanism. Another way is to use a pre-shared key. We look forward to
+your feedback on this.
 
-We seek feedback on:
-1. Appropriate cryptographic profile requirements
-2. Key exchange mechanism preferences
-3. Nonce handling implementations
+5. Question: "If losing registrar doesn't know which gaining registrar
+this domain is transferring to, how does it sign?"
+Answer: similar to when checks can be signed without a title,
+the losing registrar can sign and approve a transfer authorization
+to "arbitrary" gaining registrar such as leaving the gaining registrar
+field empty, if we want to support it.
 
 The draft continues our work to enhance transfer security while 
 respecting existing operational practices.
