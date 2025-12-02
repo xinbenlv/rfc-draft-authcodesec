@@ -1,16 +1,24 @@
-## AuthCodeSEC 
+# AuthCodeSEC Draft Repository
 
-Please find the latest draft at:
-- [draft-zzn-authcodesec-00](draft-zzn-authcodesec-00.txt) published at
-- https://www.ietf.org/archive/id/draft-zzn-authcodesec-00.txt
+## Current Draft
 
-## IETF 121 Presentation for 00 version
+The current draft is in the `src` directory.
+The draft is written in Markdown format.
 
-- 1:02:08 -1:26:56 at https://www.youtube.com/watch?v=Keu0mXOWHYw
+To generate the XML and text versions of the draft, run the following command:
+```bash
+kramdown-rfc ./src/draft-zzn-authcodesec.md > ./dist/draft-zzn-authcodesec-99.xml
+xml2rfc ./dist/draft-zzn-authcodesec-99.xml > ./dist/draft-zzn-authcodesec-99.txt
+```
 
-### Minutes
+To generate the text version of the draft, run the following command:
+```bash
 
-https://datatracker.ietf.org/meeting/121/materials/minutes-121-regext-202411041300-00
+```
+
+
+## Work Journal
+
 
 
 iv. AuthCodeSEC (Victor Zhou)
